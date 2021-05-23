@@ -15,8 +15,10 @@ public class ExampleUnitTest {
         assertEquals(4, 2 + 2);
     }
 
-/*    public void checkQuestion{
-        Question q = Question q1 = new Question("A is correct",
-                "A", "B", "C", 1, Question.DIFFICULTY_EASY);
-    }*/
-}
+/*    @Test
+    public void checkQuestion() {
+        Question q = new Question("Correct",
+                "A", "B", "C", 1, Category.IT);
+
+
+}*/

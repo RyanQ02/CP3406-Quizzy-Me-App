@@ -9,7 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Educationapp">
-        <activity android:name=".HighScoreActivity"></activity>
+        <activity android:name=".TwitterActivity"></activity>
+        <activity android:name=".HighScoreActivity" />
         <activity android:name=".GameActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
