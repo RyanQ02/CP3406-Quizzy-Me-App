@@ -12,8 +12,10 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -21,11 +23,19 @@ import java.util.Locale;
 public class GameActivity extends AppCompatActivity {
 
     public static final String EXTRA_SCORE = "extraScore";
+
     private static final long COUNTDOWN_IN_MILLISECONDS = 45000;
+
+    private static final String KEY_SCORE = "keyScore";
+    private static final String KEY_QUESTION_COUNT = "keyQuestionCount";
+    private static final String KEY_MILLIS_LEFT = "keyMillisLeft";
+    private static final String KEY_ANSWERED = "keyAnswered";
+    private static final String KEY_QUESTION_LIST = "keyQuestionList";
 
     private TextView textViewQuestion;
     private TextView textViewScore;
     private TextView textViewQuestionCount;
+    private TextView textViewDifficulty;
     private TextView textViewCountDown;
     private RadioGroup rbGroup;
     private RadioButton rb1;
@@ -43,7 +53,7 @@ public class GameActivity extends AppCompatActivity {
     private CountDownTimer countDownTimer;
     private long timeLeftInMilliseconds;
 
-    private List<Question> questionList;
+    private ArrayList<Question> questionList;
     private int questionCounter;
     private int questionCountTotal;
     private Question currentQuestion;
@@ -63,6 +73,7 @@ public class GameActivity extends AppCompatActivity {
         textViewQuestion = findViewById(R.id.text_view_question);
         textViewScore = findViewById(R.id.text_view_score);
         textViewQuestionCount = findViewById(R.id.text_view_question_count);
+        textViewDifficulty = findViewById(R.id.text_view_difficulty);
         textViewCountDown = findViewById(R.id.text_view_countdown);
         rbGroup = findViewById(R.id.radio_group);
         rb1 = findViewById(R.id.radio_button1);
@@ -79,12 +90,36 @@ public class GameActivity extends AppCompatActivity {
         textColorDefaultRb = rb1.getTextColors();
         textColorDefaultCd = textViewCountDown.getTextColors();
 
-        QuizDb dbHelper = new QuizDb(this);
-        questionList = dbHelper.getAllQuestions();
-        questionCountTotal = questionList.size();
-        Collections.shuffle(questionList);
+        Intent i = getIntent();
+        String difficulty = i.getStringExtra(MainActivity.VALUE_DIFFICULTY);
 
-        showNextQuestion();
+        textViewDifficulty.setText("Difficulty: " + difficulty);
+
+        // savedInstanceState is only used when the quiz has started and methods are used.
+        if (savedInstanceState == null) {
+            QuizDb dbHelper = new QuizDb(this);
+            questionList = dbHelper.getQuestions(difficulty);
+            questionCountTotal = questionList.size();
+            Collections.shuffle(questionList);
+
+            showNextQuestion();
+        } else {
+            questionList = savedInstanceState.getParcelableArrayList(KEY_QUESTION_LIST);
+            questionCountTotal = questionList.size();
+            questionCounter = savedInstanceState.getInt(KEY_QUESTION_COUNT);
+            currentQuestion = questionList.get(questionCounter - 1);
+            score = savedInstanceState.getInt(KEY_SCORE);
+            timeLeftInMilliseconds = savedInstanceState.getLong(KEY_MILLIS_LEFT);
+            ifAnswered = savedInstanceState.getBoolean(KEY_ANSWERED);
+
+
+            if (!ifAnswered) {
+                startCountDown(); // If answer is false, start the countdown timer.
+            } else { // Else is Utilised at the end of quiz.
+                updateCountDownText(); // else if true, update text for Count Down Timer.
+                showSolution(); // Show Solutions for options.
+            }
+        }
 
         // When confirm button is pressed, option buttons are checked to see if users has selected a answer.
 
@@ -248,5 +283,16 @@ public class GameActivity extends AppCompatActivity {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
+    }
+    // Stores data below into outState. Since activities are destroyed and remade when rotated.
+    // This will be useful.
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_SCORE, score);
+        outState.putInt(KEY_QUESTION_COUNT, questionCounter);
+        outState.putLong(KEY_MILLIS_LEFT, timeLeftInMilliseconds);
+        outState.putBoolean(KEY_ANSWERED, ifAnswered);
+        outState.putParcelableArrayList(KEY_QUESTION_LIST, questionList);
     }
 }

@@ -26,6 +26,16 @@
         android:textSize="20dp" />
 
     <TextView
+        android:id="@+id/text_view_difficulty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text_view_question_count"
+        android:text="Difficulty: "
+        android:freezesText="true"
+        android:textColor="@android:color/black"
+        android:textSize="20dp" />
+
+    <TextView
         android:id="@+id/text_view_countdown"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
