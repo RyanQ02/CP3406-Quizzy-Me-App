@@ -5,6 +5,12 @@ import android.provider.BaseColumns;
 public final class QuizContract {
     private QuizContract() {
     }
+
+    public static class CategoriesTable implements BaseColumns {
+        public static final String TABLE_NAME = "quiz_categories";
+        public static final String COLUMN_NAME = "name";
+    }
+
     // Sets Table ID's (_ID) using Base Columns for use in the Quiz Database.
     public static class QuestionsTable implements BaseColumns {
         public static final String TABLE_NAME = "quiz_questions";
@@ -13,6 +19,6 @@ public final class QuizContract {
         public static final String COLUMN_OPTION2 = "option2";
         public static final String COLUMN_OPTION3 = "option3";
         public static final String COLUMN_ANSWER_NUMBER = "answer_number";
-        public static final String COLUMN_DIFFICULTY = "difficulty";
+        public static final String COLUMN_CATEGORY_ID = "category_id";
     }
 }

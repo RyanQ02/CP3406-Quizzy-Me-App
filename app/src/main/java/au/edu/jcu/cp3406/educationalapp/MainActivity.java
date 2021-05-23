@@ -1,23 +1,15 @@
 package au.edu.jcu.cp3406.educationalapp;
 
+
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_QUIZ = 1;
-
-    // Sets Difficulty value to be sent to GameActivity
-    public static final String VALUE_DIFFICULTY = "valueDifficulty";
-
-    private Spinner spinnerDifficulty;
 
     // TODO: 22/05/2021 Implement high score in HighScoreActivity
 
@@ -38,15 +30,6 @@ public class MainActivity extends AppCompatActivity {
         Button high_score_button = (Button) findViewById(R.id.high_score_button);
         Button settings_button = (Button) findViewById(R.id.settings_button);
 
-        spinnerDifficulty = findViewById(R.id.spinner_difficulty);
-
-
-        String[] difficultyLevels = Question.getAllDifficulty();
-        ArrayAdapter<String> adapterDifficulty = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, difficultyLevels);
-        adapterDifficulty.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerDifficulty.setAdapter(adapterDifficulty);
-
         // Pressing play button will start Quiz!
         play_button.setOnClickListener(view -> startQuiz());
 
@@ -56,10 +39,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startQuiz() {
-        String difficulty = spinnerDifficulty.getSelectedItem().toString();
-
         Intent intent = new Intent(MainActivity.this, GameActivity.class);
-        intent.putExtra(VALUE_DIFFICULTY, difficulty);
         startActivity(intent);
     }
 

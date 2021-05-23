@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 public class GameActivity extends AppCompatActivity {
@@ -63,7 +62,7 @@ public class GameActivity extends AppCompatActivity {
 
     private long backPressedTime;
 
-    private int countDownInterval = 1000;
+    private final int countDownInterval = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,15 +89,10 @@ public class GameActivity extends AppCompatActivity {
         textColorDefaultRb = rb1.getTextColors();
         textColorDefaultCd = textViewCountDown.getTextColors();
 
-        Intent i = getIntent();
-        String difficulty = i.getStringExtra(MainActivity.VALUE_DIFFICULTY);
-
-        textViewDifficulty.setText("Difficulty: " + difficulty);
-
         // savedInstanceState is only used when the quiz has started and methods are used.
         if (savedInstanceState == null) {
             QuizDb dbHelper = new QuizDb(this);
-            questionList = dbHelper.getQuestions(difficulty);
+            questionList = dbHelper.getAllQuestions();
             questionCountTotal = questionList.size();
             Collections.shuffle(questionList);
 
