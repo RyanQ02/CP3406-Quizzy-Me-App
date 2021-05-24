@@ -40,8 +40,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:text="00:45"
+        android:layout_marginEnd="15dp"
+        android:layout_marginTop="14dp"
         android:freezesText="true"
+        android:text="00:20"
         android:textColor="@android:color/black"
         android:textSize="35sp" />
 
@@ -51,7 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/radio_group"
         android:layout_marginBottom="16dp"
-        android:text="Here will be the question text\nHere will be the question text\nHere will be the question text"
+        android:text="Question Text\nQuestion Text\nQuestion Text"
         android:freezesText="true"
         android:textAlignment="center"
         android:textColor="@android:color/black"
@@ -99,7 +101,7 @@
         android:id="@+id/twitter_share_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/radio_group"
+        android:layout_below="@id/button_confirm_next"
         android:layout_marginTop="16dp"
         android:text="Share your score to Twitter!"
         android:textColor="@color/black"
@@ -113,6 +115,7 @@
         android:layout_marginTop="16dp"
         android:text="Back to Main Menu"
         android:textColor="@color/black"
-        android:freezesText="true"/>
+        android:freezesText="true"
+        />
 
 </RelativeLayout>

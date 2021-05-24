@@ -2,10 +2,12 @@ package au.edu.jcu.cp3406.educationalapp;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,7 +20,13 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_CATEGORY_ID = "extraCategoryID";
     public static final String EXTRA_CATEGORY_NAME = "extraCategoryName";
 
+    public static final String SHARED_PREFS = "sharedPrefs";
+    public static final String KEY_HIGHSCORE = "keyHighscore";
+
     private Spinner spinnerCategory;
+    private TextView textViewHighScore;
+
+    private int highScore;
 
     // TODO: 22/05/2021 Implement high score in HighScoreActivity
 
@@ -40,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
         spinnerCategory = findViewById(R.id.category_spinner);
         loadCategories();
 
+        textViewHighScore = findViewById(R.id.text_view_high_score);
+        loadHighscore();
+
         // Pressing play button will start Quiz!
         play_button.setOnClickListener(view -> startQuiz());
 
@@ -56,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, GameActivity.class);
         intent.putExtra(EXTRA_CATEGORY_ID, categoryID);
         intent.putExtra(EXTRA_CATEGORY_NAME, categoryName);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_CODE_QUIZ);
     }
 
     private void startSettings() {
@@ -73,8 +84,30 @@ public class MainActivity extends AppCompatActivity {
         spinnerCategory.setAdapter(adapterCategories);
     }
 
-/*       settings_button.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, SettingActivity.class);
-            startActivity(intent);
-        });*/
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_QUIZ) {
+            if (resultCode == RESULT_OK) {
+                int score = data.getIntExtra(GameActivity.EXTRA_SCORE, 0);
+                if (score > highScore) {
+                    updateHighscore(score);
+                }
+            }
+        }
+    }
+
+    private void loadHighscore() {
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        highScore = prefs.getInt(KEY_HIGHSCORE, 0);
+        textViewHighScore.setText("Highscore: " + highScore);
+    }
+    private void updateHighscore(int highscoreNew) {
+        highScore = highscoreNew;
+        textViewHighScore.setText("Highscore: " + highScore);
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(KEY_HIGHSCORE, highScore);
+        editor.apply();
+    }
 }

@@ -12,7 +12,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class GameActivity extends AppCompatActivity {
 
     public static final String EXTRA_SCORE = "extraScore";
 
-    private static final long COUNTDOWN_IN_MILLISECONDS = 45000;
+    private static final long COUNTDOWN_IN_MILLISECONDS = 20000;
     private final int countDownInterval = 1000;
 
     private static final String KEY_SCORE = "keyScore";
@@ -67,40 +66,46 @@ public class GameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-
         textViewQuestion = findViewById(R.id.text_view_question);
         textViewScore = findViewById(R.id.text_view_score);
         textViewQuestionCount = findViewById(R.id.text_view_question_count);
         textViewCategory = findViewById(R.id.text_view_category);
         textViewCountDown = findViewById(R.id.text_view_countdown);
+
         rbGroup = findViewById(R.id.radio_group);
         rb1 = findViewById(R.id.radio_button1);
         rb2 = findViewById(R.id.radio_button2);
         rb3 = findViewById(R.id.radio_button3);
+
         buttonConfirmNext = findViewById(R.id.button_confirm_next);
-
-        twitterShareButton = findViewById(R.id.twitter_share_button);
-        //twitter_share_button.setVisibility(View.GONE);
-
-        backButton = findViewById(R.id.back_button);
-        backButton.setVisibility(View.GONE);
-
         textColorDefaultRb = rb1.getTextColors();
         textColorDefaultCd = textViewCountDown.getTextColors();
 
-        Intent i = getIntent();
-        int categoryID = i.getIntExtra(MainActivity.EXTRA_CATEGORY_ID, 0);
-        String categoryName = i.getStringExtra(MainActivity.EXTRA_CATEGORY_NAME);
 
+        // Functionality to go to Twitter Activity after quiz is completed.
+        // Button is hidden until quiz completion.
+        twitterShareButton = findViewById(R.id.twitter_share_button);
+        twitterShareButton.setVisibility(View.GONE);
+        twitterShareButton.setOnClickListener(view -> startTwitterActivity());
+
+        // Functionality to go back to the main menu after quiz is completed.
+        // Button is hidden until quiz completion.
+        // Uses finish() instead of intent.
+        backButton = findViewById(R.id.back_button);
+        backButton.setVisibility(View.GONE);
+        backButton.setOnClickListener(view -> finishGame());
+
+
+        Intent intent = getIntent();
+        int categoryID = intent.getIntExtra(MainActivity.EXTRA_CATEGORY_ID, 0);
+        String categoryName = intent.getStringExtra(MainActivity.EXTRA_CATEGORY_NAME);
         textViewCategory.setText("Category: " + categoryName);
-
-        // savedInstanceState is only used when the quiz has started and methods are used.
         if (savedInstanceState == null) {
+
             QuizDb dbHelper = QuizDb.getInstance(this);
             questionList = dbHelper.getQuestions(categoryID);
             questionCountTotal = questionList.size();
             Collections.shuffle(questionList);
-
             showNextQuestion();
         } else {
             questionList = savedInstanceState.getParcelableArrayList(KEY_QUESTION_LIST);
@@ -110,38 +115,33 @@ public class GameActivity extends AppCompatActivity {
             score = savedInstanceState.getInt(KEY_SCORE);
             timeLeftInMilliseconds = savedInstanceState.getLong(KEY_MILLIS_LEFT);
             ifAnswered = savedInstanceState.getBoolean(KEY_ANSWERED);
-
-
             if (!ifAnswered) {
-                startCountDown(); // If answer is false, start the countdown timer.
-            } else { // Else is Utilised at the end of quiz.
-                updateCountDownText(); // else if true, update text for Count Down Timer.
-                showSolution(); // Show Solutions for options.
+                startCountDown();
+            } else {
+                updateCountDownText();
+                showSolution();
             }
         }
 
         // When confirm button is pressed, option buttons are checked to see if users has selected a answer.
 
-        buttonConfirmNext.setOnClickListener(view -> {
+        buttonConfirmNext.setOnClickListener(v -> {
             if (!ifAnswered) {
                 if (rb1.isChecked() || rb2.isChecked() || rb3.isChecked()) {
                     checkAnswer();
                 } else {
-                    Toast.makeText(GameActivity.this, "Please choose a answer", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GameActivity.this, "Please select an answer", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 showNextQuestion();
             }
         });
-        // Go to Twitter Share Activity if user chooses to press Share button.
-        //twitter_share_button.setOnClickListener(view -> {
-        Intent intent = new Intent(GameActivity.this, TwitterActivity.class);
-        GameActivity.this.startActivity(intent);
     }
-/*
-    // Back button call onFinish rather then an intent to adhere Activity LifeCycles.
-        backButton.setOnClickListener(view -> finishGame());
-}*/
+
+    private void startTwitterActivity(){
+        Intent intent = new Intent(GameActivity.this, TwitterActivity.class);
+        startActivity(intent);
+    }
 
     private void showNextQuestion() {
         rb1.setTextColor(textColorDefaultRb);
@@ -167,10 +167,7 @@ public class GameActivity extends AppCompatActivity {
             timeLeftInMilliseconds = COUNTDOWN_IN_MILLISECONDS;
             startCountDown();
         } else {
-            //twitter_share_button.setVisibility(View.VISIBLE);
-            backButton.setVisibility(View.VISIBLE);
-            buttonConfirmNext.setVisibility(View.INVISIBLE);
-
+            onQuizFinished();
         }
     }
 
@@ -191,21 +188,16 @@ public class GameActivity extends AppCompatActivity {
             }
         }.start();
     }
-
     // Countdown timer minutes and seconds logic is then formatted to 00:00.
     private void updateCountDownText() {
         int minutes = (int) (timeLeftInMilliseconds / 1000) / 60;
         int seconds = (int) (timeLeftInMilliseconds / 1000) % 60;
         String timeFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
         textViewCountDown.setText(timeFormatted);
-        if (timeLeftInMilliseconds < 10000) {
+        if (timeLeftInMilliseconds < 5000) {
             textViewCountDown.setTextColor(Color.RED);
         } else {
             textViewCountDown.setTextColor(textColorDefaultCd);
-        }
-        if (timeLeftInMilliseconds == 0) {
-            //twitter_share_button.setVisibility(View.VISIBLE);
-            buttonConfirmNext.setVisibility(View.VISIBLE);
         }
     }
 
@@ -214,12 +206,12 @@ public class GameActivity extends AppCompatActivity {
     private void checkAnswer() {
         ifAnswered = true;
 
-        // Cancels countdown timer when true.
+        // Stops and Cancels countdown timer when answered is true.
         countDownTimer.cancel();
 
         RadioButton rbSelected = findViewById(rbGroup.getCheckedRadioButtonId());
-        int answer_number = rbGroup.indexOfChild(rbSelected) + 1;
-        if (answer_number == currentQuestion.getAnswer_number()) {
+        int answerNumber = rbGroup.indexOfChild(rbSelected) + 1;
+        if (answerNumber == currentQuestion.getAnswer_number()) {
             score++;
             textViewScore.setText("Score: " + score);
         }
@@ -227,6 +219,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     // Shows solutions after boolean ifAnswered = true.
+
     private void showSolution() {
         rb1.setTextColor(Color.RED);
         rb2.setTextColor(Color.RED);
@@ -252,12 +245,18 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    // Save score so that it is checked with high score in HighScoreActivity.
-    // Game Activity has ended and moves back to MainActivity.
-    private void finishGame() {
+    // Save score so that it is checked with high score in MainActivity.
+    private void onQuizFinished() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_SCORE, score);
         setResult(RESULT_OK, resultIntent);
+        twitterShareButton.setVisibility(View.VISIBLE);
+        backButton.setVisibility(View.VISIBLE);
+    }
+
+    // Calls finish() rather then an intent to adhere Activity LifeCycles.
+    private void finishGame() {
+        onQuizFinished();
         finish();
     }
 
@@ -269,13 +268,14 @@ public class GameActivity extends AppCompatActivity {
         if (backPressedTime + 3500 > System.currentTimeMillis()) {
             finishGame();
         } else {
-            Toast.makeText(this, "Press back button again to confirm.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Press back again to finish", Toast.LENGTH_LONG).show();
         }
         backPressedTime = System.currentTimeMillis();
     }
 
     // Cancels CountDownTimer when activity is finished.
     // If not called, CountDownTimer will keep running.
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -284,10 +284,11 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    // Lifecycle Method
     // Stores data below into outState. Since activities are destroyed and remade when rotated.
-    // This will be useful.
+
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
+    protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_SCORE, score);
         outState.putInt(KEY_QUESTION_COUNT, questionCounter);
