@@ -3,6 +3,7 @@ package au.edu.jcu.cp3406.educationalapp;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Spinner spinnerCategory;
     private TextView textViewHighScore;
+
+    private SensorManager sensorManager;
 
     private int highScore;
 

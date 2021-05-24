@@ -10,8 +10,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Educationapp">
         <activity android:name=".SettingsActivity" />
-        <activity android:name=".TwitterActivity" />
-        <activity android:name=".HighScoreActivity" />
         <activity android:name=".GameActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

@@ -1,8 +1,15 @@
 package au.edu.jcu.cp3406.educationalapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
@@ -14,11 +21,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity{
 
     public static final String EXTRA_SCORE = "extraScore";
 
@@ -35,7 +46,6 @@ public class GameActivity extends AppCompatActivity {
     private TextView textViewScore;
     private TextView textViewQuestionCount;
     private TextView textViewCountDown;
-    private TextView textViewCategory;
     private RadioGroup rbGroup;
     private RadioButton rb1;
     private RadioButton rb2;
@@ -45,7 +55,6 @@ public class GameActivity extends AppCompatActivity {
     private Button backButton;
 
     private ColorStateList textColorDefaultRb; // Text colour for radio button.
-    // TODO: 22/05/2021  Could implement button here instead of radio buttons, correct green colour incorrect red colour.
 
     private ColorStateList textColorDefaultCd;
 
@@ -62,6 +71,12 @@ public class GameActivity extends AppCompatActivity {
 
     private long backPressedTime;
 
+    private SensorManager sensorManager;
+    private float accel;
+    private float accelCurrent;
+    private float accelLast;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +84,7 @@ public class GameActivity extends AppCompatActivity {
         textViewQuestion = findViewById(R.id.text_view_question);
         textViewScore = findViewById(R.id.text_view_score);
         textViewQuestionCount = findViewById(R.id.text_view_question_count);
-        textViewCategory = findViewById(R.id.text_view_category);
+        TextView textViewCategory = findViewById(R.id.text_view_category);
         textViewCountDown = findViewById(R.id.text_view_countdown);
 
         rbGroup = findViewById(R.id.radio_group);
@@ -81,12 +96,20 @@ public class GameActivity extends AppCompatActivity {
         textColorDefaultRb = rb1.getTextColors();
         textColorDefaultCd = textViewCountDown.getTextColors();
 
+        sensorManager = (SensorManager)this.getSystemService(SENSOR_SERVICE);
+        Objects.requireNonNull(sensorManager).registerListener(sensorListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_DELAY_NORMAL);
+        accel = 10f;
+        accelCurrent = SensorManager.GRAVITY_EARTH;
+        accelLast = SensorManager.GRAVITY_EARTH;
 
-        // Functionality to go to Twitter Activity after quiz is completed.
-        // Button is hidden until quiz completion.
+        // Functionality to share score to Twitter.
+        // This will open up Twitter either in the device's web browser or Twitter app
+        // if installed.
+
         twitterShareButton = findViewById(R.id.twitter_share_button);
         twitterShareButton.setVisibility(View.GONE);
-        twitterShareButton.setOnClickListener(view -> startTwitterActivity());
+        twitterShareButton.setOnClickListener(v -> shareOnTwitter());
 
         // Functionality to go back to the main menu after quiz is completed.
         // Button is hidden until quiz completion.
@@ -107,6 +130,7 @@ public class GameActivity extends AppCompatActivity {
             questionCountTotal = questionList.size();
             Collections.shuffle(questionList);
             showNextQuestion();
+
         } else {
             questionList = savedInstanceState.getParcelableArrayList(KEY_QUESTION_LIST);
             questionCountTotal = questionList.size();
@@ -136,11 +160,8 @@ public class GameActivity extends AppCompatActivity {
                 showNextQuestion();
             }
         });
-    }
-
-    private void startTwitterActivity(){
-        Intent intent = new Intent(GameActivity.this, TwitterActivity.class);
-        startActivity(intent);
+        // Toast to notify user of Shake gesture feature to quickly head back to the main menu.
+        Toast.makeText(getApplicationContext(), "Tip: Shake device for easy access back to the main menu", Toast.LENGTH_LONG).show();
     }
 
     private void showNextQuestion() {
@@ -167,6 +188,7 @@ public class GameActivity extends AppCompatActivity {
             timeLeftInMilliseconds = COUNTDOWN_IN_MILLISECONDS;
             startCountDown();
         } else {
+
             onQuizFinished();
         }
     }
@@ -188,6 +210,7 @@ public class GameActivity extends AppCompatActivity {
             }
         }.start();
     }
+
     // Countdown timer minutes and seconds logic is then formatted to 00:00.
     private void updateCountDownText() {
         int minutes = (int) (timeLeftInMilliseconds / 1000) / 60;
@@ -245,11 +268,59 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    // Shake gesture only used in GameActivity. If user shakes device, the sensor will detect that
+    // and send user back to Main Activity with a Toast to verify.
+    private final SensorEventListener sensorListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
+            accelLast = accelCurrent;
+            accelCurrent = (float) Math.sqrt((double) (x * x + y * y + z * z));
+            float delta = accelCurrent - accelLast;
+            accel = accel * 0.9f + delta;
+            if (accel > 24) {
+
+                // Finish activity and if score is high score, high score will be set in MainActivity.
+
+                finishGame();
+                Toast.makeText(getApplicationContext(), "Heading back to Main Menu.", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        sensorManager.registerListener(sensorListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_DELAY_NORMAL);
+        super.onResume();
+    }
+
+    // Unregisters sensor when paused.
+    // Sensors Android Guidelines state
+    // To always unregister sensors as best practice to avoid using substantial amount of power.
+    @Override
+    protected void onPause() {
+        sensorManager.unregisterListener(sensorListener);
+        super.onPause();
+    }
+
+
+
     // Save score so that it is checked with high score in MainActivity.
     private void onQuizFinished() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_SCORE, score);
         setResult(RESULT_OK, resultIntent);
+
+
+
+        buttonConfirmNext.setVisibility(View.GONE);
         twitterShareButton.setVisibility(View.VISIBLE);
         backButton.setVisibility(View.VISIBLE);
     }
@@ -268,7 +339,7 @@ public class GameActivity extends AppCompatActivity {
         if (backPressedTime + 3500 > System.currentTimeMillis()) {
             finishGame();
         } else {
-            Toast.makeText(this, "Press back again to finish", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Press back again to finish Quiz early", Toast.LENGTH_LONG).show();
         }
         backPressedTime = System.currentTimeMillis();
     }
@@ -281,6 +352,32 @@ public class GameActivity extends AppCompatActivity {
         super.onDestroy();
         if (countDownTimer != null) {
             countDownTimer.cancel();
+        }
+    }
+
+    // Pre-populates tweet with name and score.
+
+    public void shareOnTwitter() {
+        String tweetUrl = String.format("https://twitter.com/intent/tweet",
+                urlEncode("I just scored " + score + "in Quizzy Me!"));
+        Intent intent_twitter = new Intent(Intent.ACTION_VIEW, Uri.parse(tweetUrl));
+
+        // Goes to Twitter App if available on device.
+        List<ResolveInfo> matches = getPackageManager().queryIntentActivities(intent_twitter, 0);
+        for (ResolveInfo info : matches) {
+            if (info.activityInfo.packageName.toLowerCase().startsWith("com.twitter")) {
+                intent_twitter.setPackage(info.activityInfo.packageName);
+            }
+        }
+
+        startActivity(intent_twitter);
+    }
+
+    public static String urlEncode(String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("URLEncoder.encode() failed for " + s);
         }
     }
 
