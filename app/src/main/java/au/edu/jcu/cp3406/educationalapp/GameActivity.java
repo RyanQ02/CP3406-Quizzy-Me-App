@@ -1,6 +1,6 @@
 package au.edu.jcu.cp3406.educationalapp;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
@@ -19,6 +19,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.UnsupportedEncodingException;
@@ -77,6 +78,7 @@ public class GameActivity extends AppCompatActivity{
     private float accelLast;
 
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -164,6 +166,7 @@ public class GameActivity extends AppCompatActivity{
         Toast.makeText(getApplicationContext(), "Tip: Shake device for easy access back to the main menu", Toast.LENGTH_LONG).show();
     }
 
+    @SuppressLint("SetTextI18n")
     private void showNextQuestion() {
         rb1.setTextColor(textColorDefaultRb);
         rb2.setTextColor(textColorDefaultRb);
@@ -226,6 +229,7 @@ public class GameActivity extends AppCompatActivity{
 
     // if answer_number is == to currentQuestion, add score + 1
 
+    @SuppressLint("SetTextI18n")
     private void checkAnswer() {
         ifAnswered = true;
 
@@ -243,6 +247,7 @@ public class GameActivity extends AppCompatActivity{
 
     // Shows solutions after boolean ifAnswered = true.
 
+    @SuppressLint("SetTextI18n")
     private void showSolution() {
         rb1.setTextColor(Color.RED);
         rb2.setTextColor(Color.RED);
@@ -314,11 +319,11 @@ public class GameActivity extends AppCompatActivity{
 
     // Save score so that it is checked with high score in MainActivity.
     private void onQuizFinished() {
+        Toast.makeText(this, "Shake the Device or Tap the button below to Head back to the Main Menu.", Toast.LENGTH_LONG).show();
+
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_SCORE, score);
         setResult(RESULT_OK, resultIntent);
-
-
 
         buttonConfirmNext.setVisibility(View.GONE);
         twitterShareButton.setVisibility(View.VISIBLE);
@@ -363,7 +368,7 @@ public class GameActivity extends AppCompatActivity{
         Intent intent_twitter = new Intent(Intent.ACTION_VIEW, Uri.parse(tweetUrl));
 
         // Goes to Twitter App if available on device.
-        List<ResolveInfo> matches = getPackageManager().queryIntentActivities(intent_twitter, 0);
+        @SuppressLint("QueryPermissionsNeeded") List<ResolveInfo> matches = getPackageManager().queryIntentActivities(intent_twitter, 0);
         for (ResolveInfo info : matches) {
             if (info.activityInfo.packageName.toLowerCase().startsWith("com.twitter")) {
                 intent_twitter.setPackage(info.activityInfo.packageName);
@@ -385,7 +390,7 @@ public class GameActivity extends AppCompatActivity{
     // Stores data below into outState. Since activities are destroyed and remade when rotated.
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_SCORE, score);
         outState.putInt(KEY_QUESTION_COUNT, questionCounter);

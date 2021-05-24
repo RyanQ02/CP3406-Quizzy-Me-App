@@ -1,9 +1,9 @@
 package au.edu.jcu.cp3406.educationalapp;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -27,13 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spinnerCategory;
     private TextView textViewHighScore;
 
-    private SensorManager sensorManager;
-
     private int highScore;
-
-    // TODO: 22/05/2021 Implement high score in HighScoreActivity
-
-    // TODO: 23/05/2021 Set Spinner to Settings instead of MainActivity.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         settings_button.setOnClickListener(view -> startSettings());
 
     }
-
+    // Starts Quiz GameActivity.
     private void startQuiz() {
         Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
         int categoryID = selectedCategory.getId();
@@ -72,12 +66,12 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_CATEGORY_NAME, categoryName);
         startActivityForResult(intent, REQUEST_CODE_QUIZ);
     }
-
+    // Starts Settings Activity
     private void startSettings() {
         Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
         startActivity(intent);
     }
-
+    // Loads Categories from Database to Spinner.
     private void loadCategories() {
         QuizDb dbHelper = QuizDb.getInstance(this);
         List<Category> categories = dbHelper.getAllCategories();
@@ -99,12 +93,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
+    // Loads HighScore from Shared Preferences.
+    @SuppressLint("SetTextI18n")
     private void loadHighscore() {
         SharedPreferences prefs = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
         highScore = prefs.getInt(KEY_HIGHSCORE, 0);
         textViewHighScore.setText("Highscore: " + highScore);
     }
+    // Updates score with High Score from Shared Preferences.
+    @SuppressLint("SetTextI18n")
     private void updateHighscore(int highscoreNew) {
         highScore = highscoreNew;
         textViewHighScore.setText("Highscore: " + highScore);
