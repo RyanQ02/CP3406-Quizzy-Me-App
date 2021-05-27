@@ -16,7 +16,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_CODE_QUIZ = 1;
+    private static final int REQUEST_CODE = 1;
 
     public static final String EXTRA_CATEGORY_ID = "extraCategoryID";
     public static final String EXTRA_CATEGORY_NAME = "extraCategoryName";
@@ -35,16 +35,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-
-        // High Score Text View
-
         // Functionality for buttons in activity_main.xml.
         Button play_button = (Button) findViewById(R.id.play_button);
         Button settings_button = (Button) findViewById(R.id.settings_button);
 
+        // Spinner for Categories IT, Science and Japanese.
         spinnerCategory = findViewById(R.id.category_spinner);
         loadCategories();
 
+        // High Score Text view with stored High Score.
         textViewHighScore = findViewById(R.id.text_view_high_score);
         loadHighscore();
 
@@ -55,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         settings_button.setOnClickListener(view -> startSettings());
 
     }
+
     // Starts Quiz GameActivity.
     private void startQuiz() {
         Category selectedCategory = (Category) spinnerCategory.getSelectedItem();
@@ -64,13 +64,15 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, GameActivity.class);
         intent.putExtra(EXTRA_CATEGORY_ID, categoryID);
         intent.putExtra(EXTRA_CATEGORY_NAME, categoryName);
-        startActivityForResult(intent, REQUEST_CODE_QUIZ);
+        startActivityForResult(intent, REQUEST_CODE);
     }
+
     // Starts Settings Activity
     private void startSettings() {
         Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
         startActivity(intent);
     }
+
     // Loads Categories from Database to Spinner.
     private void loadCategories() {
         QuizDb dbHelper = QuizDb.getInstance(this);
@@ -84,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_QUIZ) {
+        if (requestCode == REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 int score = data.getIntExtra(GameActivity.EXTRA_SCORE, 0);
                 if (score > highScore) {
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     // Loads HighScore from Shared Preferences.
     @SuppressLint("SetTextI18n")
     private void loadHighscore() {
@@ -100,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         highScore = prefs.getInt(KEY_HIGHSCORE, 0);
         textViewHighScore.setText("Highscore: " + highScore);
     }
+
     // Updates score with High Score from Shared Preferences.
     @SuppressLint("SetTextI18n")
     private void updateHighscore(int highscoreNew) {

@@ -13,7 +13,7 @@ import au.edu.jcu.cp3406.educationalapp.QuizContract.QuestionsTable;
 import au.edu.jcu.cp3406.educationalapp.QuizContract.CategoriesTable;
 
 public class QuizDb extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "EducationalApp.db";
+    private static final String DATABASE_NAME = "QuizzyMe.db";
     private static final int DATABASE_VERSION = 1;
 
     private static QuizDb instance;
@@ -23,7 +23,8 @@ public class QuizDb extends SQLiteOpenHelper {
     private QuizDb(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
-    // Sets up SQLite Database with Columns, Question, Options.
+
+    // Sets up SQLite Database.
 
     public static synchronized QuizDb getInstance(Context context){
         if (instance == null) {
@@ -31,6 +32,8 @@ public class QuizDb extends SQLiteOpenHelper {
         }
         return instance;
     }
+
+    // Creates initial Table with Columns for questions, options, answer assigned numbers and category types.
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -59,9 +62,11 @@ public class QuizDb extends SQLiteOpenHelper {
         fillCategoriesTable();
         fillQuestionsTable();
     }
+
     // Any changes to the database need to be updated in onUpgrade by changing DATABASE_VERSION to a new number.
-    // Changing the DATABASE_VERSION is useful when users use your app.
+    // Changing the DATABASE_VERSION is useful when users use your app on the Google play store.
     // Alternatively, Uninstalling and reinstalling will reset the SQLite Database. Useful for Testing.
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + CategoriesTable.TABLE_NAME);
@@ -69,12 +74,15 @@ public class QuizDb extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    // Foreign Key Constraint is to prevent destroying links in table with category id's.
+
     @Override
     public void onConfigure(SQLiteDatabase db) {
         super.onConfigure(db);
         db.setForeignKeyConstraintsEnabled(true);
     }
 
+    // Assigns Categories for each Subject
     private void fillCategoriesTable() {
 
         Category c1 = new Category("IT");
@@ -85,13 +93,16 @@ public class QuizDb extends SQLiteOpenHelper {
         addCategory(c3);
     }
 
+    // Adds Categories to Database.
+
     private void addCategory(Category category) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(CategoriesTable.COLUMN_NAME, category.getName());
         db.insert(CategoriesTable.TABLE_NAME, null, contentValues);
     }
 
-    // This will fill the database with the Question, Question Categories, Options, Answer assigned to a Integer in correlation to the options.
+    // This will fill the database with the Question, Question Categories, Options, Answer assigned to a Integer in correlation to the correct option
+    // and Categories for each Subject.
 
     private void fillQuestionsTable() {
 

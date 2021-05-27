@@ -3,6 +3,9 @@ package au.edu.jcu.cp3406.educationalapp;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+// Uses Parcelable to move member fields to different classes
+// and to save instance states.
+
 public class Question implements Parcelable {
 
     private int id;

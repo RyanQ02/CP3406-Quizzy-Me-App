@@ -18,6 +18,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         preferences = getSharedPreferences("config", MODE_PRIVATE);
 
+        // Uses AppCompatDelegate so Night mode is used Globally in the app.
+
         AppCompatDelegate.setDefaultNightMode(preferences.getInt("Default Night Mode",
                 AppCompatDelegate.MODE_NIGHT_UNSPECIFIED));
 
@@ -31,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
     }
+    // Destroys Night mode method.
     @Override
     protected void onDestroy() {
         preferences.edit().putInt("Default Night Mode", AppCompatDelegate.getDefaultNightMode()).apply();

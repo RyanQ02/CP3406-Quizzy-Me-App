@@ -48,9 +48,9 @@ public class GameActivity extends AppCompatActivity{
     private TextView textViewQuestionCount;
     private TextView textViewCountDown;
     private RadioGroup rbGroup;
-    private RadioButton rb1;
-    private RadioButton rb2;
-    private RadioButton rb3;
+    private RadioButton radioButton1;
+    private RadioButton radioButton2;
+    private RadioButton radioButton3;
     private Button buttonConfirmNext;
     private Button twitterShareButton;
     private Button backButton;
@@ -72,6 +72,7 @@ public class GameActivity extends AppCompatActivity{
 
     private long backPressedTime;
 
+    // Sensor Shake Member Fields
     private SensorManager sensorManager;
     private float accel;
     private float accelCurrent;
@@ -90,12 +91,12 @@ public class GameActivity extends AppCompatActivity{
         textViewCountDown = findViewById(R.id.text_view_countdown);
 
         rbGroup = findViewById(R.id.radio_group);
-        rb1 = findViewById(R.id.radio_button1);
-        rb2 = findViewById(R.id.radio_button2);
-        rb3 = findViewById(R.id.radio_button3);
+        radioButton1 = findViewById(R.id.radio_button1);
+        radioButton2 = findViewById(R.id.radio_button2);
+        radioButton3 = findViewById(R.id.radio_button3);
 
         buttonConfirmNext = findViewById(R.id.button_confirm_next);
-        textColorDefaultRb = rb1.getTextColors();
+        textColorDefaultRb = radioButton1.getTextColors();
         textColorDefaultCd = textViewCountDown.getTextColors();
 
         sensorManager = (SensorManager)this.getSystemService(SENSOR_SERVICE);
@@ -106,8 +107,7 @@ public class GameActivity extends AppCompatActivity{
         accelLast = SensorManager.GRAVITY_EARTH;
 
         // Functionality to share score to Twitter.
-        // This will open up Twitter either in the device's web browser or Twitter app
-        // if installed.
+        // This will open up Twitter either in the device's web browser or Twitter app if installed
 
         twitterShareButton = findViewById(R.id.twitter_share_button);
         twitterShareButton.setVisibility(View.GONE);
@@ -115,16 +115,18 @@ public class GameActivity extends AppCompatActivity{
 
         // Functionality to go back to the main menu after quiz is completed.
         // Button is hidden until quiz completion.
-        // Uses finish() instead of intent.
+        // Uses finish() instead of intent to adhere Lifecycle.
         backButton = findViewById(R.id.back_button);
         backButton.setVisibility(View.GONE);
         backButton.setOnClickListener(view -> finishGame());
 
-
+        // Gets Categories from Database
         Intent intent = getIntent();
         int categoryID = intent.getIntExtra(MainActivity.EXTRA_CATEGORY_ID, 0);
         String categoryName = intent.getStringExtra(MainActivity.EXTRA_CATEGORY_NAME);
         textViewCategory.setText("Category: " + categoryName);
+
+        // Saves only in savedInstanceState if any important values are changed in respective member fields.
         if (savedInstanceState == null) {
 
             QuizDb dbHelper = QuizDb.getInstance(this);
@@ -153,7 +155,7 @@ public class GameActivity extends AppCompatActivity{
 
         buttonConfirmNext.setOnClickListener(v -> {
             if (!ifAnswered) {
-                if (rb1.isChecked() || rb2.isChecked() || rb3.isChecked()) {
+                if (radioButton1.isChecked() || radioButton2.isChecked() || radioButton3.isChecked()) {
                     checkAnswer();
                 } else {
                     Toast.makeText(GameActivity.this, "Please select an answer", Toast.LENGTH_SHORT).show();
@@ -166,11 +168,12 @@ public class GameActivity extends AppCompatActivity{
         Toast.makeText(getApplicationContext(), "Tip: Shake device for easy access back to the main menu", Toast.LENGTH_LONG).show();
     }
 
+    // Logic for displaying Next question to replace current question.
     @SuppressLint("SetTextI18n")
     private void showNextQuestion() {
-        rb1.setTextColor(textColorDefaultRb);
-        rb2.setTextColor(textColorDefaultRb);
-        rb3.setTextColor(textColorDefaultRb);
+        radioButton1.setTextColor(textColorDefaultRb);
+        radioButton2.setTextColor(textColorDefaultRb);
+        radioButton3.setTextColor(textColorDefaultRb);
         rbGroup.clearCheck();
 
         // If confirm button is pressed, locks answer from one of the selected options.
@@ -179,9 +182,9 @@ public class GameActivity extends AppCompatActivity{
             currentQuestion = questionList.get(questionCounter);
 
             textViewQuestion.setText(currentQuestion.getQuestion());
-            rb1.setText(currentQuestion.getOption1());
-            rb2.setText(currentQuestion.getOption2());
-            rb3.setText(currentQuestion.getOption3());
+            radioButton1.setText(currentQuestion.getOption1());
+            radioButton2.setText(currentQuestion.getOption2());
+            radioButton3.setText(currentQuestion.getOption3());
 
             questionCounter++;
             textViewQuestionCount.setText("Question: " + questionCounter + "/" + questionCountTotal);
@@ -214,7 +217,7 @@ public class GameActivity extends AppCompatActivity{
         }.start();
     }
 
-    // Countdown timer minutes and seconds logic is then formatted to 00:00.
+    // Countdown timer minutes and seconds logic is used to format 00:00.
     private void updateCountDownText() {
         int minutes = (int) (timeLeftInMilliseconds / 1000) / 60;
         int seconds = (int) (timeLeftInMilliseconds / 1000) % 60;
@@ -249,20 +252,20 @@ public class GameActivity extends AppCompatActivity{
 
     @SuppressLint("SetTextI18n")
     private void showSolution() {
-        rb1.setTextColor(Color.RED);
-        rb2.setTextColor(Color.RED);
-        rb3.setTextColor(Color.RED);
+        radioButton1.setTextColor(Color.RED);
+        radioButton2.setTextColor(Color.RED);
+        radioButton3.setTextColor(Color.RED);
         switch (currentQuestion.getAnswer_number()) {
             case 1:
-                rb1.setTextColor(Color.GREEN);
+                radioButton1.setTextColor(Color.GREEN);
                 textViewQuestion.setText("Answer 1 is correct");
                 break;
             case 2:
-                rb2.setTextColor(Color.GREEN);
+                radioButton2.setTextColor(Color.GREEN);
                 textViewQuestion.setText("Answer 2 is correct");
                 break;
             case 3:
-                rb3.setTextColor(Color.GREEN);
+                radioButton3.setTextColor(Color.GREEN);
                 textViewQuestion.setText("Answer 3 is correct");
                 break;
         }
@@ -275,6 +278,7 @@ public class GameActivity extends AppCompatActivity{
 
     // Shake gesture only used in GameActivity. If user shakes device, the sensor will detect that
     // and send user back to Main Activity with a Toast to verify.
+
     private final SensorEventListener sensorListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -317,7 +321,7 @@ public class GameActivity extends AppCompatActivity{
 
 
 
-    // Save score so that it is checked with high score in MainActivity.
+    // Save score so that it is checked with High Score in MainActivity.
     private void onQuizFinished() {
         Toast.makeText(this, "Shake the Device or Tap the button below to Head back to the Main Menu.", Toast.LENGTH_LONG).show();
 
@@ -350,7 +354,7 @@ public class GameActivity extends AppCompatActivity{
     }
 
     // Cancels CountDownTimer when activity is finished.
-    // If not called, CountDownTimer will keep running.
+    // If not called, CountDownTimer will keep running in startCountDownTimer
 
     @Override
     protected void onDestroy() {
@@ -386,8 +390,8 @@ public class GameActivity extends AppCompatActivity{
         }
     }
 
-    // Lifecycle Method
-    // Stores data below into outState. Since activities are destroyed and remade when rotated.
+    // Stores data below into outState when device is rotated.
+    // Activities are destroyed and remade when rotated.
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
